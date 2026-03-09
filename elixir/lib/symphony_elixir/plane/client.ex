@@ -115,8 +115,9 @@ defmodule SymphonyElixir.Plane.Client do
     path = "/workspaces/#{workspace}/projects/#{project_id}/states/"
 
     case get(path) do
-      {:ok, %{status: 200, body: body}} when is_list(body) ->
-        {:ok, parse_states_response(body)}
+      {:ok, %{status: 200, body: body}} when is_map(body) ->
+        results = Map.get(body, "results", [])
+        {:ok, parse_states_response(results)}
 
       {:ok, response} ->
         Logger.error("Plane fetch states failed status=#{response.status}")
