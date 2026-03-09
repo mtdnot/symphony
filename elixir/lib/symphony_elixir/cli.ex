@@ -84,8 +84,17 @@ defmodule SymphonyElixir.CLI do
       set_workflow_file_path: &SymphonyElixir.Workflow.set_workflow_file_path/1,
       set_logs_root: &set_logs_root/1,
       set_server_port_override: &set_server_port_override/1,
-      ensure_all_started: fn -> Application.ensure_all_started(:symphony_elixir) end
+      ensure_all_started: &ensure_all_started/0
     }
+  end
+
+  @spec ensure_all_started() :: ensure_started_result()
+  defp ensure_all_started do
+    # Ensure HTTP client dependencies are started before symphony_elixir.
+    # This is necessary because escript builds with app: nil don't auto-start deps.
+    with {:ok, _} <- Application.ensure_all_started(:req) do
+      Application.ensure_all_started(:symphony_elixir)
+    end
   end
 
   defp maybe_set_logs_root(opts, deps) do
