@@ -418,13 +418,15 @@ defmodule SymphonyElixir.Plane.Client do
 
   defp get(path) do
     with {:ok, headers} <- api_headers() do
-      request_fun = request_module()
       url = Config.plane_endpoint() <> path
 
-      request_fun.get(url,
+      Req.new(
+        url: url,
         headers: headers,
-        connect_options: [timeout: 30_000]
+        connect_options: [timeout: 30_000],
+        retry: false
       )
+      |> Req.get()
     end
   end
 
@@ -436,7 +438,8 @@ defmodule SymphonyElixir.Plane.Client do
       request_fun.post(url,
         headers: headers,
         json: payload,
-        connect_options: [timeout: 30_000]
+        connect_options: [timeout: 30_000],
+        retry: false
       )
     end
   end
@@ -449,7 +452,8 @@ defmodule SymphonyElixir.Plane.Client do
       request_fun.patch(url,
         headers: headers,
         json: payload,
-        connect_options: [timeout: 30_000]
+        connect_options: [timeout: 30_000],
+        retry: false
       )
     end
   end
@@ -462,8 +466,10 @@ defmodule SymphonyElixir.Plane.Client do
       api_key ->
         {:ok,
          [
-           {"X-API-Key", api_key},
-           {"Content-Type", "application/json"}
+           {"x-api-key", api_key},
+           {"content-type", "application/json"},
+           {"user-agent", "Symphony-Elixir/0.1"},
+           {"accept", "*/*"}
          ]}
     end
   end
