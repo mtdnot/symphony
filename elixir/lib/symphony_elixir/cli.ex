@@ -6,7 +6,7 @@ defmodule SymphonyElixir.CLI do
   alias SymphonyElixir.LogFile
 
   @acknowledgement_switch :i_understand_that_this_will_be_running_without_the_usual_guardrails
-  @switches [{@acknowledgement_switch, :boolean}, logs_root: :string, port: :integer]
+  @switches [{@acknowledgement_switch, :boolean}, logs_root: :string, port: :integer, no_tui: :boolean]
 
   @type ensure_started_result :: {:ok, [atom()]} | {:error, term()}
   @type deps :: %{
@@ -35,14 +35,16 @@ defmodule SymphonyElixir.CLI do
       {opts, [], []} ->
         with :ok <- require_guardrails_acknowledgement(opts),
              :ok <- maybe_set_logs_root(opts, deps),
-             :ok <- maybe_set_server_port(opts, deps) do
+             :ok <- maybe_set_server_port(opts, deps),
+             :ok <- maybe_set_no_tui(opts) do
           run(Path.expand("WORKFLOW.md"), deps)
         end
 
       {opts, [workflow_path], []} ->
         with :ok <- require_guardrails_acknowledgement(opts),
              :ok <- maybe_set_logs_root(opts, deps),
-             :ok <- maybe_set_server_port(opts, deps) do
+             :ok <- maybe_set_server_port(opts, deps),
+             :ok <- maybe_set_no_tui(opts) do
           run(workflow_path, deps)
         end
 
@@ -72,7 +74,7 @@ defmodule SymphonyElixir.CLI do
 
   @spec usage_message() :: String.t()
   defp usage_message do
-    "Usage: symphony [--logs-root <path>] [--port <port>] [path-to-WORKFLOW.md]"
+    "Usage: symphony [--logs-root <path>] [--port <port>] [--no-tui] [path-to-WORKFLOW.md]"
   end
 
   @spec runtime_deps() :: deps()
@@ -82,8 +84,17 @@ defmodule SymphonyElixir.CLI do
       set_workflow_file_path: &SymphonyElixir.Workflow.set_workflow_file_path/1,
       set_logs_root: &set_logs_root/1,
       set_server_port_override: &set_server_port_override/1,
-      ensure_all_started: fn -> Application.ensure_all_started(:symphony_elixir) end
+      ensure_all_started: &ensure_all_started/0
     }
+  end
+
+  @spec ensure_all_started() :: ensure_started_result()
+  defp ensure_all_started do
+    # Ensure HTTP client dependencies are started before symphony_elixir.
+    # This is necessary because escript builds with app: nil don't auto-start deps.
+    with {:ok, _} <- Application.ensure_all_started(:req) do
+      Application.ensure_all_started(:symphony_elixir)
+    end
   end
 
   defp maybe_set_logs_root(opts, deps) do
@@ -166,6 +177,14 @@ defmodule SymphonyElixir.CLI do
 
   defp set_server_port_override(port) when is_integer(port) and port >= 0 do
     Application.put_env(:symphony_elixir, :server_port_override, port)
+    :ok
+  end
+
+  defp maybe_set_no_tui(opts) do
+    if Keyword.get(opts, :no_tui, false) do
+      Application.put_env(:symphony_elixir, :no_tui, true)
+    end
+
     :ok
   end
 

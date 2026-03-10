@@ -1929,15 +1929,20 @@ defmodule SymphonyElixir.StatusDashboard do
   defp truncate(value, _max), do: value
 
   defp dashboard_enabled? do
-    if Code.ensure_loaded?(Mix) and function_exported?(Mix, :env, 0) do
-      try do
-        Mix.env() != :test
-      rescue
-        _ -> true
+    not no_tui?() and
+      if Code.ensure_loaded?(Mix) and function_exported?(Mix, :env, 0) do
+        try do
+          Mix.env() != :test
+        rescue
+          _ -> true
+        end
+      else
+        true
       end
-    else
-      true
-    end
+  end
+
+  defp no_tui? do
+    Application.get_env(:symphony_elixir, :no_tui, false)
   end
 
   defp keyword_override(opts, key) do

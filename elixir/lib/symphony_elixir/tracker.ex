@@ -40,6 +40,7 @@ defmodule SymphonyElixir.Tracker do
   def adapter do
     case Config.tracker_kind() do
       "memory" -> SymphonyElixir.Tracker.Memory
+      "plane" -> SymphonyElixir.Plane.Adapter
       _ -> SymphonyElixir.Linear.Adapter
     end
   end

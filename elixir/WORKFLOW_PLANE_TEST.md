@@ -13,8 +13,9 @@ tracker:
   identifier_prefix: SUB
 ---
 
-# Plane Test Workflow
+# Test Workflow for Plane
 
 Issue: {{ issue.identifier }}
 Title: {{ issue.title }}
-Description: {{ issue.description }}
+
+{{ issue.description }}

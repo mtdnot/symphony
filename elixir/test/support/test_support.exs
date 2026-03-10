@@ -13,6 +13,7 @@ defmodule SymphonyElixir.TestSupport do
       alias SymphonyElixir.HttpServer
       alias SymphonyElixir.Linear.Client
       alias SymphonyElixir.Linear.Issue
+      alias SymphonyElixir.Plane
       alias SymphonyElixir.Orchestrator
       alias SymphonyElixir.PromptBuilder
       alias SymphonyElixir.StatusDashboard
@@ -99,6 +100,9 @@ defmodule SymphonyElixir.TestSupport do
           tracker_assignee: nil,
           tracker_active_states: ["Todo", "In Progress"],
           tracker_terminal_states: ["Closed", "Cancelled", "Canceled", "Duplicate", "Done"],
+          tracker_workspace: nil,
+          tracker_project_id: nil,
+          tracker_identifier_prefix: nil,
           poll_interval_ms: 30_000,
           workspace_root: Path.join(System.tmp_dir!(), "symphony_workspaces"),
           max_concurrent_agents: 10,
@@ -134,6 +138,9 @@ defmodule SymphonyElixir.TestSupport do
     tracker_assignee = Keyword.get(config, :tracker_assignee)
     tracker_active_states = Keyword.get(config, :tracker_active_states)
     tracker_terminal_states = Keyword.get(config, :tracker_terminal_states)
+    tracker_workspace = Keyword.get(config, :tracker_workspace)
+    tracker_project_id = Keyword.get(config, :tracker_project_id)
+    tracker_identifier_prefix = Keyword.get(config, :tracker_identifier_prefix)
     poll_interval_ms = Keyword.get(config, :poll_interval_ms)
     workspace_root = Keyword.get(config, :workspace_root)
     max_concurrent_agents = Keyword.get(config, :max_concurrent_agents)
@@ -170,6 +177,9 @@ defmodule SymphonyElixir.TestSupport do
         "  assignee: #{yaml_value(tracker_assignee)}",
         "  active_states: #{yaml_value(tracker_active_states)}",
         "  terminal_states: #{yaml_value(tracker_terminal_states)}",
+        "  workspace: #{yaml_value(tracker_workspace)}",
+        "  project_id: #{yaml_value(tracker_project_id)}",
+        "  identifier_prefix: #{yaml_value(tracker_identifier_prefix)}",
         "polling:",
         "  interval_ms: #{yaml_value(poll_interval_ms)}",
         "workspace:",
